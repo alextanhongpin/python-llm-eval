@@ -1,3 +1,17 @@
-.ipynb_checkpoints/
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
 
 /.quarto/
+.DS_Store
+.ipynb_checkpoints/
+tmp/
+startup_vectors.npy
+startups_demo.json

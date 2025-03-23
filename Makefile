@@ -71,3 +71,11 @@ endef
 
 init_quarto:
 	@echo "$$quarto_config" > _quarto.yaml
+
+
+test:
+	uv run deepeval test run test_example.py
+
+
+metrics:
+	uv run deepeval recommend metrics
