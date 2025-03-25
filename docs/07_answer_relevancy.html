@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Evaluating LLM Performance – python applied machine learning</title>
+<title>Answer Relevancy – python applied machine learning</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,10 +20,44 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -66,6 +100,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>
 
 
 </head>
@@ -79,7 +117,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01-eval.html">Evaluating LLM Performance</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_answer_relevancy.html">Answer Relevancy</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -106,7 +144,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./01-eval.html" class="sidebar-item-text sidebar-link active">
+  <a href="./01-eval.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Evaluating LLM Performance</span></a>
   </div>
 </li>
@@ -142,7 +180,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./07_answer_relevancy.html" class="sidebar-item-text sidebar-link">
+  <a href="./07_answer_relevancy.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Answer Relevancy</span></a>
   </div>
 </li>
@@ -228,8 +266,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#bleu-bilingual-evaluation-understudy" id="toc-bleu-bilingual-evaluation-understudy" class="nav-link active" data-scroll-target="#bleu-bilingual-evaluation-understudy"><span class="header-section-number">0.1</span> BLEU (Bilingual Evaluation Understudy):</a></li>
-  <li><a href="#rouge-recall-oriented-understudy-for-gisting-evaluation" id="toc-rouge-recall-oriented-understudy-for-gisting-evaluation" class="nav-link" data-scroll-target="#rouge-recall-oriented-understudy-for-gisting-evaluation"><span class="header-section-number">0.2</span> ROUGE (Recall-Oriented Understudy for Gisting Evaluation):</a></li>
+  <li><a href="#as-a-standalone" id="toc-as-a-standalone" class="nav-link active" data-scroll-target="#as-a-standalone"><span class="header-section-number">1</span> As a standalone</a></li>
   </ul>
 </nav>
     </div>
@@ -238,7 +275,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Evaluating LLM Performance</h1>
+<h1 class="title">Answer Relevancy</h1>
 </div>
 
 
@@ -255,41 +292,125 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>To effectively evaluate LLM performance, we need to consider various aspects beyond just accuracy. These aspects include fluency, coherence, relevance, diversity, factual accuracy, and the ability to generate meaningful responses.</p>
-<ol type="1">
-<li><p><strong>LLM Benchmarks</strong>: Example: SuperGLUE, a suite of benchmarks for evaluating LLMs on diverse natural language tasks.</p></li>
-<li><p><strong>Metrics</strong>: Example: BLEU score, which measures the similarity between generated text and human-written references.</p></li>
-<li><p><strong>Human Evaluation</strong>: Example: Collect human judgments on the quality of generated text, such as fluency, coherence, and informativeness.</p></li>
-<li><p><strong>Multi-Task Evaluation</strong>: Example: Evaluate an LLM on a variety of tasks to assess its overall effectiveness.</p></li>
-<li><p><strong>Explainability Methods</strong>: Example: Utilize techniques such as attention visualization to understand how an LLM generates text and identify potential biases.</p></li>
-</ol>
-<p>BLEU and ROUGE scores are metrics commonly used to evaluate the performance of natural language processing (NLP) models, specifically machine translation and text summarization models.</p>
-<section id="bleu-bilingual-evaluation-understudy" class="level3" data-number="0.1">
-<h3 data-number="0.1" class="anchored" data-anchor-id="bleu-bilingual-evaluation-understudy"><span class="header-section-number">0.1</span> BLEU (Bilingual Evaluation Understudy):</h3>
-<ul>
-<li>Measures the similarity between a machine-generated text and human-written reference translations.</li>
-<li>Focuses on precision, meaning it penalizes the model for generating words not present in the reference translations.</li>
-<li>Calculates n-gram matches (overlapping sequences of words) between the generated and reference texts.</li>
-<li>Ranges from 0 (no overlap) to 1 (perfect match).</li>
-</ul>
-</section>
-<section id="rouge-recall-oriented-understudy-for-gisting-evaluation" class="level3" data-number="0.2">
-<h3 data-number="0.2" class="anchored" data-anchor-id="rouge-recall-oriented-understudy-for-gisting-evaluation"><span class="header-section-number">0.2</span> ROUGE (Recall-Oriented Understudy for Gisting Evaluation):</h3>
-<ul>
-<li>Measures the overlap between machine-generated summaries and human-written reference summaries.</li>
-<li>Focuses on recall, meaning it rewards the model for capturing important information from the original text.</li>
-<li>Utilizes various n-gram sizes to capture different levels of granularity.</li>
-<li>Offers several variants, including ROUGE-N (n-gram overlap), ROUGE-L (longest common subsequence), and ROUGE-W (weighted n-gram overlap).</li>
-<li>Scores are reported as F1 scores, which combine precision and recall.</li>
-</ul>
-<p>Both BLEU and ROUGE scores offer valuable insights into the performance of NLP models, but they have limitations. BLEU can be sensitive to word order and may not capture fluency or coherence. ROUGE can reward summaries that are overly repetitive or lack originality.</p>
-<p>Here are some additional points to consider:</p>
-<ul>
-<li>BLEU is often used for machine translation, while ROUGE is preferred for text summarization.</li>
-<li>Newer metrics are being developed to address the limitations of BLEU and ROUGE, such as METEOR and CHRF++.</li>
-<li>Human evaluation is still considered the gold standard for NLP model evaluation, but it can be expensive and time-consuming.</li>
-</ul>
-<p>No single metric can perfectly capture the quality of a machine-generated text. It’s important to consider the specific task and application when choosing the most appropriate evaluation methods.</p>
+<p>https://docs.confident-ai.com/docs/metrics-answer-relevancy</p>
+<div id="7d22804f-3337-49b4-b44f-55e45b829150" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval <span class="im">import</span> evaluate</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval.metrics <span class="im">import</span> AnswerRelevancyMetric</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval.test_case <span class="im">import</span> LLMTestCase</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> llm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="8334f2b5-c7c2-4700-9cba-7d838f65fbee" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>context <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">If you’re on the hunt for a standout kopitiam in KL,  Selangor, Penang, or Johor (JB), look no further than Oriental Kopi. Our kopitiam offers a unique blend of traditional and modern flavours, ensuring a memorable experience with every visit.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">At Oriental Kopi, we pride ourselves on serving exceptional coffee and delightful homemade traditional toast in a welcoming atmosphere. Our kopitiam provides a cosy retreat to enjoy expertly brewed beverages and freshly prepared treats. From rich, aromatic coffees to delicious local pastries, we deliver a taste of excellence and comfort.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">Come and visit our Penang, Johor, Selangor, or KL kopitiam today!</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>context <span class="op">=</span> context.strip()</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(context)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>If you’re on the hunt for a standout kopitiam in KL,  Selangor, Penang, or Johor (JB), look no further than Oriental Kopi. Our kopitiam offers a unique blend of traditional and modern flavours, ensuring a memorable experience with every visit.
+
+At Oriental Kopi, we pride ourselves on serving exceptional coffee and delightful homemade traditional toast in a welcoming atmosphere. Our kopitiam provides a cosy retreat to enjoy expertly brewed beverages and freshly prepared treats. From rich, aromatic coffees to delicious local pastries, we deliver a taste of excellence and comfort.
+
+Come and visit our Penang, Johor, Selangor, or KL kopitiam today!</code></pre>
+</div>
+</div>
+<div id="ebe11e36-eb5b-4db5-80b7-ea7ca69c0c80" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> <span class="st">"Where can I find the kopitiam?"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">You are a helpful AI assistant.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">You provide relevant answers based on the given context:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">---</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="sc">{context}</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">---</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">Answer only from the given context. Otherwise, say you don't know.</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="st">Question: </span><span class="sc">{question}</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="st">Answer:</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> llm.query(prompt.<span class="bu">format</span>(context<span class="op">=</span>context, question<span class="op">=</span>query))</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(response)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>You can find Oriental Kopi in KL, Selangor, Penang, or Johor (JB).</code></pre>
+</div>
+</div>
+<div id="3716eb5c-1a15-4cb2-b14d-1894e5152bcc" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>metric <span class="op">=</span> AnswerRelevancyMetric(threshold<span class="op">=</span><span class="fl">0.7</span>, include_reason<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>test_case <span class="op">=</span> LLMTestCase(<span class="bu">input</span><span class="op">=</span>query, actual_output<span class="op">=</span>response)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>evaluate(test_cases<span class="op">=</span>[test_case], metrics<span class="op">=</span>[metric])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">✨ You're running DeepEval's latest <span style="color: #6a00ff; text-decoration-color: #6a00ff">Answer Relevancy Metric</span>! <span style="color: #374151; text-decoration-color: #374151; font-weight: bold">(</span><span style="color: #374151; text-decoration-color: #374151">using deepseek-r</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">1:8b</span><span style="color: #374151; text-decoration-color: #374151"> </span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">(</span><span style="color: #374151; text-decoration-color: #374151">Ollama</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">)</span><span style="color: #374151; text-decoration-color: #374151">, </span><span style="color: #374151; text-decoration-color: #374151">strict</span><span style="color: #374151; text-decoration-color: #374151">=</span><span style="color: #374151; text-decoration-color: #374151; font-style: italic">False</span><span style="color: #374151; text-decoration-color: #374151">, </span>
+<span style="color: #374151; text-decoration-color: #374151">async_mode</span><span style="color: #374151; text-decoration-color: #374151">=</span><span style="color: #374151; text-decoration-color: #374151; font-style: italic">True</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">)</span><span style="color: #374151; text-decoration-color: #374151">...</span>
+</pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Evaluating 1 test case(s) in parallel: |█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████|100% (1/1) [Time Taken: 00:10, 10.76s/test case]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+======================================================================
+
+Metrics Summary
+
+  - ✅ Answer Relevancy (score: 1.0, threshold: 0.7, strict: False, evaluation model: deepseek-r1:8b (Ollama), reason: The score is 1.00 because the response accurately addresses the user's question by providing relevant information and guidance., error: None)
+
+For test case:
+
+  - input: Where can I find the kopitiam?
+  - actual output: You can find Oriental Kopi in KL, Selangor, Penang, or Johor (JB).
+  - expected output: None
+  - context: None
+  - retrieval context: None
+
+======================================================================
+
+Overall Metric Pass Rates
+
+Answer Relevancy: 100.00% pass rate
+
+======================================================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #05f58d; text-decoration-color: #05f58d">✓</span> Tests finished 🎉! Run <span style="color: #008000; text-decoration-color: #008000; font-weight: bold">'deepeval login'</span> to save and analyze evaluation results on Confident AI.
+ 
+✨👀 Looking for a place for your LLM test data to live 🏡❤️ ? Use <span style="color: #6a00ff; text-decoration-color: #6a00ff">Confident AI</span> to get &amp; share testing reports, 
+experiment with models/prompts, and catch regressions for your LLM system. Just run <span style="color: #008080; text-decoration-color: #008080">'deepeval login'</span> in the CLI. 
+
+</pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>EvaluationResult(test_results=[TestResult(name='test_case_0', success=True, metrics_data=[MetricData(name='Answer Relevancy', threshold=0.7, success=True, score=1.0, reason="The score is 1.00 because the response accurately addresses the user's question by providing relevant information and guidance.", strict_mode=False, evaluation_model='deepseek-r1:8b (Ollama)', error=None, evaluation_cost=0.0, verbose_logs='Statements:\n[\n    "Oriental Kopi can be found in KL.",\n    "It can also be found in Selangor.",\n    "Penang is another location where it\'s available.",\n    "Johor (JB) is a location with Oriental Kopi."\n] \n \nVerdicts:\n[\n    {\n        "verdict": "yes",\n        "reason": null\n    },\n    {\n        "verdict": "yes",\n        "reason": null\n    },\n    {\n        "verdict": "yes",\n        "reason": null\n    },\n    {\n        "verdict": "yes",\n        "reason": null\n    }\n]')], conversational=False, multimodal=False, input='Where can I find the kopitiam?', actual_output='You can find Oriental Kopi in KL, Selangor, Penang, or Johor (JB).', expected_output=None, context=None, retrieval_context=None)], confident_link=None)</code></pre>
+</div>
+</div>
+<section id="as-a-standalone" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="as-a-standalone"><span class="header-section-number">1</span> As a standalone</h2>
+<div id="816839a6-039b-416c-bf69-7b18f8ad23f4" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>metric.measure(test_case)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"52acd69c6d0d4a3c9d0bfbcd83da6b55","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div id="fb6e9bb3-b9fc-404e-8b0e-e58beabf15d5" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>metric.score, metric.reason</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>(1.0,
+ 'The score is 1.00 because the output directly addresses the query with a clear and concise answer.')</code></pre>
+</div>
+</div>
 
 
 </section>

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Evaluating LLM Performance – python applied machine learning</title>
+<title>Prompt Alignment – python applied machine learning</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,10 +20,44 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -66,6 +100,9 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -79,7 +116,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01-eval.html">Evaluating LLM Performance</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./17_prompt_alignment.html">Prompt Alignment</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -106,7 +143,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./01-eval.html" class="sidebar-item-text sidebar-link active">
+  <a href="./01-eval.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Evaluating LLM Performance</span></a>
   </div>
 </li>
@@ -202,7 +239,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./17_prompt_alignment.html" class="sidebar-item-text sidebar-link">
+  <a href="./17_prompt_alignment.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Prompt Alignment</span></a>
   </div>
 </li>
@@ -223,22 +260,15 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#bleu-bilingual-evaluation-understudy" id="toc-bleu-bilingual-evaluation-understudy" class="nav-link active" data-scroll-target="#bleu-bilingual-evaluation-understudy"><span class="header-section-number">0.1</span> BLEU (Bilingual Evaluation Understudy):</a></li>
-  <li><a href="#rouge-recall-oriented-understudy-for-gisting-evaluation" id="toc-rouge-recall-oriented-understudy-for-gisting-evaluation" class="nav-link" data-scroll-target="#rouge-recall-oriented-understudy-for-gisting-evaluation"><span class="header-section-number">0.2</span> ROUGE (Recall-Oriented Understudy for Gisting Evaluation):</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Evaluating LLM Performance</h1>
+<h1 class="title">Prompt Alignment</h1>
 </div>
 
 
@@ -255,44 +285,76 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>To effectively evaluate LLM performance, we need to consider various aspects beyond just accuracy. These aspects include fluency, coherence, relevance, diversity, factual accuracy, and the ability to generate meaningful responses.</p>
-<ol type="1">
-<li><p><strong>LLM Benchmarks</strong>: Example: SuperGLUE, a suite of benchmarks for evaluating LLMs on diverse natural language tasks.</p></li>
-<li><p><strong>Metrics</strong>: Example: BLEU score, which measures the similarity between generated text and human-written references.</p></li>
-<li><p><strong>Human Evaluation</strong>: Example: Collect human judgments on the quality of generated text, such as fluency, coherence, and informativeness.</p></li>
-<li><p><strong>Multi-Task Evaluation</strong>: Example: Evaluate an LLM on a variety of tasks to assess its overall effectiveness.</p></li>
-<li><p><strong>Explainability Methods</strong>: Example: Utilize techniques such as attention visualization to understand how an LLM generates text and identify potential biases.</p></li>
-</ol>
-<p>BLEU and ROUGE scores are metrics commonly used to evaluate the performance of natural language processing (NLP) models, specifically machine translation and text summarization models.</p>
-<section id="bleu-bilingual-evaluation-understudy" class="level3" data-number="0.1">
-<h3 data-number="0.1" class="anchored" data-anchor-id="bleu-bilingual-evaluation-understudy"><span class="header-section-number">0.1</span> BLEU (Bilingual Evaluation Understudy):</h3>
-<ul>
-<li>Measures the similarity between a machine-generated text and human-written reference translations.</li>
-<li>Focuses on precision, meaning it penalizes the model for generating words not present in the reference translations.</li>
-<li>Calculates n-gram matches (overlapping sequences of words) between the generated and reference texts.</li>
-<li>Ranges from 0 (no overlap) to 1 (perfect match).</li>
-</ul>
-</section>
-<section id="rouge-recall-oriented-understudy-for-gisting-evaluation" class="level3" data-number="0.2">
-<h3 data-number="0.2" class="anchored" data-anchor-id="rouge-recall-oriented-understudy-for-gisting-evaluation"><span class="header-section-number">0.2</span> ROUGE (Recall-Oriented Understudy for Gisting Evaluation):</h3>
-<ul>
-<li>Measures the overlap between machine-generated summaries and human-written reference summaries.</li>
-<li>Focuses on recall, meaning it rewards the model for capturing important information from the original text.</li>
-<li>Utilizes various n-gram sizes to capture different levels of granularity.</li>
-<li>Offers several variants, including ROUGE-N (n-gram overlap), ROUGE-L (longest common subsequence), and ROUGE-W (weighted n-gram overlap).</li>
-<li>Scores are reported as F1 scores, which combine precision and recall.</li>
-</ul>
-<p>Both BLEU and ROUGE scores offer valuable insights into the performance of NLP models, but they have limitations. BLEU can be sensitive to word order and may not capture fluency or coherence. ROUGE can reward summaries that are overly repetitive or lack originality.</p>
-<p>Here are some additional points to consider:</p>
-<ul>
-<li>BLEU is often used for machine translation, while ROUGE is preferred for text summarization.</li>
-<li>Newer metrics are being developed to address the limitations of BLEU and ROUGE, such as METEOR and CHRF++.</li>
-<li>Human evaluation is still considered the gold standard for NLP model evaluation, but it can be expensive and time-consuming.</li>
-</ul>
-<p>No single metric can perfectly capture the quality of a machine-generated text. It’s important to consider the specific task and application when choosing the most appropriate evaluation methods.</p>
+<p>https://docs.confident-ai.com/docs/metrics-prompt-alignment</p>
+<div id="e571314a-30f2-4013-aaeb-87cb1ab99653" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval <span class="im">import</span> evaluate</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval.metrics <span class="im">import</span> PromptAlignmentMetric</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> deepeval.test_case <span class="im">import</span> LLMTestCase</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>metric <span class="op">=</span> PromptAlignmentMetric(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    prompt_instructions<span class="op">=</span>[<span class="st">"Reply in all uppercase"</span>], include_reason<span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>test_case <span class="op">=</span> LLMTestCase(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span><span class="op">=</span><span class="st">"What if these shoes don't fit?"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Replace this with the actual output from your LLM application</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    actual_output<span class="op">=</span><span class="st">"We offer a 30-day full refund at no extra cost."</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># To run metric as a standalone</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># metric.measure(test_case)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># print(metric.score, metric.reason)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>evaluate(test_cases<span class="op">=</span>[test_case], metrics<span class="op">=</span>[metric])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">✨ You're running DeepEval's latest <span style="color: #6a00ff; text-decoration-color: #6a00ff">Prompt Alignment Metric</span>! <span style="color: #374151; text-decoration-color: #374151; font-weight: bold">(</span><span style="color: #374151; text-decoration-color: #374151">using deepseek-r</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">1:8b</span><span style="color: #374151; text-decoration-color: #374151"> </span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">(</span><span style="color: #374151; text-decoration-color: #374151">Ollama</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">)</span><span style="color: #374151; text-decoration-color: #374151">, </span><span style="color: #374151; text-decoration-color: #374151">strict</span><span style="color: #374151; text-decoration-color: #374151">=</span><span style="color: #374151; text-decoration-color: #374151; font-style: italic">False</span><span style="color: #374151; text-decoration-color: #374151">, </span>
+<span style="color: #374151; text-decoration-color: #374151">async_mode</span><span style="color: #374151; text-decoration-color: #374151">=</span><span style="color: #374151; text-decoration-color: #374151; font-style: italic">True</span><span style="color: #374151; text-decoration-color: #374151; font-weight: bold">)</span><span style="color: #374151; text-decoration-color: #374151">...</span>
+</pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Evaluating 1 test case(s) in parallel: |█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████|100% (1/1) [Time Taken: 00:07,  7.23s/test case]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+======================================================================
+
+Metrics Summary
+
+  - ❌ Prompt Alignment (score: 0.0, threshold: 0.5, strict: False, evaluation model: deepseek-r1:8b (Ollama), reason: The score is 0.00 because the LLM's actual output does not fully align with the input prompt, as indicated by the unalignment reason., error: None)
+
+For test case:
+
+  - input: What if these shoes don't fit?
+  - actual output: We offer a 30-day full refund at no extra cost.
+  - expected output: None
+  - context: None
+  - retrieval context: None
+
+======================================================================
+
+Overall Metric Pass Rates
+
+Prompt Alignment: 0.00% pass rate
+
+======================================================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #05f58d; text-decoration-color: #05f58d">✓</span> Tests finished 🎉! Run <span style="color: #008000; text-decoration-color: #008000; font-weight: bold">'deepeval login'</span> to save and analyze evaluation results on Confident AI.
+ 
+✨👀 Looking for a place for your LLM test data to live 🏡❤️ ? Use <span style="color: #6a00ff; text-decoration-color: #6a00ff">Confident AI</span> to get &amp; share testing reports, 
+experiment with models/prompts, and catch regressions for your LLM system. Just run <span style="color: #008080; text-decoration-color: #008080">'deepeval login'</span> in the CLI. 
+
+</pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>EvaluationResult(test_results=[TestResult(name='test_case_0', success=False, metrics_data=[MetricData(name='Prompt Alignment', threshold=0.5, success=False, score=0.0, reason="The score is 0.00 because the LLM's actual output does not fully align with the input prompt, as indicated by the unalignment reason.", strict_mode=False, evaluation_model='deepseek-r1:8b (Ollama)', error=None, evaluation_cost=0.0, verbose_logs='Prompt Instructions:\n[\n    "Reply in all uppercase"\n] \n \nVerdicts:\n[\n    {\n        "verdict": "no",\n        "reason": "The LLM did not reply in all uppercase; it responded with text that isn\'t in uppercase."\n    }\n]')], conversational=False, multimodal=False, input="What if these shoes don't fit?", actual_output='We offer a 30-day full refund at no extra cost.', expected_output=None, context=None, retrieval_context=None)], confident_link=None)</code></pre>
+</div>
+</div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
